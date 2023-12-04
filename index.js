@@ -16,11 +16,11 @@ client.on('ready', async () => {
     output: process.stdout
   });
 
-  readline.question('Ingrese la ID del servidor que desea borrar: '.cyan, (guildId) => {
+  readline.question('Ingrese la ID del servidor que desea borrar: ', (guildId) => {
     const guild = client.guilds.cache.get(guildId);
 
     if (guild) {
-      console.log(`Operación de borrado iniciada para el servidor ${guild.name} con ID: (${guild.id})`.blue);
+      console.log(`Operación de borrado iniciada para el servidor ${guild.name} con ID: (${guild.id})`.yellow);
       deleteAllChannels(guild).then(async () => {
         //Obtener todos los roles del servidor
         await getRoles(guild);
@@ -41,7 +41,7 @@ client.on('ready', async () => {
         });
 
       });
-      console.log(`Operación de borrado finalizada para el servidor ${guild.name} con ID: (${guild.id})`.blue);
+      console.log(`Operación de borrado finalizada para el servidor ${guild.name} con ID: (${guild.id})`.bgGreen);
     } else {
       console.log(`No se encontró el servidor con ID: (${guildId})`.underline.red);
       return;
@@ -62,9 +62,8 @@ async function getRoles(guild) {
 
     // Escribir en el archivo
     fs.writeFileSync(path.join(__dirname, 'roles.json'), JSON.stringify(data, null, 2));
-    console.log('Roles guardados en roles.txt'.bgGreen);
-
-    process.exit(0);
+    console.log(" ");
+    console.log('Roles guardados'.bgGreen);
 
   } catch (error) {
     console.error('Error al obtener roles:'.underline.red, error);
@@ -76,7 +75,7 @@ async function deleteAllChannels(guild) {
   try {
     // Eliminar todos los canales
     await Promise.all(guild.channels.cache.map(channel => channel.delete()));
-    console.log('Todos los canales eliminados'.brightMagenta);
+    console.log('Todos los canales eliminados'.rainbow);
 
   } catch (error) {
     console.error('Error al eliminar canales:'.underline.red, error);

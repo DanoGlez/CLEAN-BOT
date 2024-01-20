@@ -1,16 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 const color = require('colors');
-const { Client, GatewayIntentBits, PermissionsBitField, ChannelFlagsBitField, ChannelType } = require('discord.js');
-const { send } = require('process');
+const { Client, GatewayIntentBits, PermissionsBitField, ChannelType } = require('discord.js');
 require('dotenv').config();
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
+const cooldownDelay = 5000; // Cooldown delay in milliseconds (5 seconds)
+let lastDeletionTimestamp = 0;
+const categorya = '1198247266885054493';
+
 client.on('ready', async () => {
   console.log(`Bot iniciado como ${client.user.tag}`.america);
 
-  // Solicitar la ID del servidor desde la línea de comandos
   const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
@@ -22,11 +24,10 @@ client.on('ready', async () => {
     if (guild) {
       console.log(`Operación de borrado iniciada para el servidor ${guild.name} con ID: (${guild.id})`.yellow);
       deleteAllChannels(guild).then(async () => {
-        //Obtener todos los roles del servidor
         await getRoles(guild);
-        //Create a channel with the name "new-general" everyone can see but only you can send messages
+
         await guild.channels.create({
-          name: 'mantenimiento',  
+          name: 'mantenimiento',
           type: ChannelType.GuildText,
           permissionOverwrites: [
             {
@@ -48,10 +49,9 @@ client.on('ready', async () => {
     }
   });
 });
-//Extraer el nombre de usario y los roles que tienes y colocarlos en un txt
+
 async function getRoles(guild) {
   try {
-    // Obtener todos los roles del servidor
     const roles = await guild.roles.fetch();
     
     const data = {};
@@ -60,7 +60,6 @@ async function getRoles(guild) {
       data[role.id] = role.members.map(member => member.user.id);
     });
 
-    // Escribir en el archivo
     fs.writeFileSync(path.join(__dirname, 'roles.json'), JSON.stringify(data, null, 2));
     console.log(" ");
     console.log('Roles guardados'.bgGreen);
@@ -73,12 +72,43 @@ async function getRoles(guild) {
 
 async function deleteAllChannels(guild) {
   try {
-    // Eliminar todos los canales
-    await Promise.all(guild.channels.cache.map(channel => channel.delete()));
-    console.log('Todos los canales eliminados'.rainbow);
+    const currentTimestamp = Date.now();
 
+    // Check if the cooldown period has passed
+    if (currentTimestamp - lastDeletionTimestamp < cooldownDelay) {
+      console.log(`Cooldown activo. Esperando ${cooldownDelay / 1000} segundos antes de borrar más canales.`);
+      return;
+    }
+
+    // Delete channels with a cooldown in between
+    await Promise.all(guild.channels.cache.map(async (channel) => {
+      try {
+        // Check if the channel is the specific category to be preserved
+        if (channel.id === categorya && channel.type === ChannelType.GuildCategory) {
+          console.log(`Categoría ${channel.name} preservada`);
+          return;
+        }
+
+        // Check if the channel is a text channel within the specified category
+        if (channel.parentId === categorya && channel.type === ChannelType.GuildText) {
+          console.log(`Canal ${channel.name} dentro de la categoría preservada`);
+          return;
+        }
+
+        // Delete other channels
+        await channel.delete();
+        console.log(`Canal ${channel.name} borrado`);
+      } catch (error) {
+        console.error(`Error al borrar el canal ${channel.name}:`, error);
+      }
+    }));
+
+    // Update the last deletion timestamp
+    lastDeletionTimestamp = currentTimestamp;
+
+    console.log('Todos los canales borrados excepto la categoría y sus canales internos.');
   } catch (error) {
-    console.error('Error al eliminar canales:'.underline.red, error);
+    console.error('Error durante el borrado de canales:', error);
     throw error;
   }
 }

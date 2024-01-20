@@ -22,7 +22,7 @@ client.on('ready', async () => {
     const guild = client.guilds.cache.get(guildId);
 
     if (guild) {
-      console.log(`Operación de borrado iniciada para el servidor ${guild.name} con ID: (${guild.id})`.yellow);
+      console.log(`Operación de borrado iniciada para el servidor ${guild.name} con ID: (${guild.id})`.bgYellow);
       deleteAllChannels(guild).then(async () => {
         await getRoles(guild);
 
@@ -42,7 +42,7 @@ client.on('ready', async () => {
         });
 
       });
-      console.log(`Operación de borrado finalizada para el servidor ${guild.name} con ID: (${guild.id})`.bgGreen);
+      console.log(`Operación de borrado finalizada para el servidor ${guild.name} con ID: (${guild.id})`.bgCyan);
     } else {
       console.log(`No se encontró el servidor con ID: (${guildId})`.underline.red);
       return;
@@ -85,13 +85,13 @@ async function deleteAllChannels(guild) {
       try {
         // Check if the channel is the specific category to be preserved
         if (channel.id === categorya && channel.type === ChannelType.GuildCategory) {
-          console.log(`Categoría ${channel.name} preservada`);
+          console.log(`Categoría ${channel.name} preservada`.blue);
           return;
         }
 
         // Check if the channel is a text channel within the specified category
         if (channel.parentId === categorya && channel.type === ChannelType.GuildText) {
-          console.log(`Canal ${channel.name} dentro de la categoría preservada`);
+          console.log(`Canal ${channel.name} dentro de la categoría preservada`.blue);
           return;
         }
 
@@ -106,7 +106,7 @@ async function deleteAllChannels(guild) {
     // Update the last deletion timestamp
     lastDeletionTimestamp = currentTimestamp;
 
-    console.log('Todos los canales borrados excepto la categoría y sus canales internos.');
+    console.log('Todos los canales borrados excepto la categoría y sus canales internos.'.bgGreen);
   } catch (error) {
     console.error('Error durante el borrado de canales:', error);
     throw error;
